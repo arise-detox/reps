@@ -1,0 +1,23 @@
+{
+  "id": "./",
+  "name": "REPS — compteur de répétitions par caméra",
+  "short_name": "REPS",
+  "description": "Compte tes répétitions avec la caméra du téléphone : un exercice au choix, ou un WOD avec plusieurs exercices. Tout reste sur ton téléphone.",
+  "lang": "fr",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#ffffff",
+  "theme_color": "#d9232d",
+  "categories": ["fitness", "sports", "health"],
+  "icons": [
+    { "src": "./icons/icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
+    { "src": "./icons/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
+    { "src": "./icons/icon-maskable-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ],
+  "shortcuts": [
+    { "name": "Compter un exercice", "short_name": "Exercice", "url": "./#exo" },
+    { "name": "Lancer un WOD", "short_name": "WOD", "url": "./#wod" }
+  ]
+}

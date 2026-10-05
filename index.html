@@ -1,0 +1,90 @@
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#ffffff">
+  <meta name="description" content="REPS : compteur de répétitions par caméra. Un exercice au choix, ou un WOD avec plusieurs exercices. Tout reste sur votre téléphone.">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="default">
+  <meta name="apple-mobile-web-app-title" content="REPS">
+  <link rel="manifest" href="./manifest.webmanifest">
+  <link rel="apple-touch-icon" href="./icons/apple-touch-icon.png">
+  <link rel="icon" type="image/png" href="./icons/icon-192.png">
+  <link rel="stylesheet" href="./styles.css">
+  <title>REPS — compteur de répétitions par caméra</title>
+</head>
+<body>
+  <a class="skip" href="#view">Aller au contenu</a>
+  <header class="top">
+    <div class="brand"><span class="logo" aria-hidden="true">R</span><div><strong>REPS</strong><small>compteur par caméra</small></div></div>
+    <button class="icon-btn" id="aboutBtn" type="button" aria-label="À propos et limites">ⓘ</button>
+  </header>
+
+  <main id="view" tabindex="-1"></main>
+
+  <nav class="tabs" aria-label="Navigation principale">
+    <button type="button" data-tab="exo"><span aria-hidden="true">🎯</span>Exercice</button>
+    <button type="button" data-tab="wod"><span aria-hidden="true">🏆</span>WOD</button>
+    <button type="button" data-tab="book"><span aria-hidden="true">📒</span>Carnet</button>
+  </nav>
+
+  <!-- Session caméra (exercice seul ou WOD) -->
+  <div id="cam" class="cam" hidden role="dialog" aria-modal="true" aria-label="Compteur de répétitions">
+    <div class="cam-top"><strong id="camTitle">Compteur</strong><button class="icon-btn" id="camClose" type="button" aria-label="Quitter la séance">✕</button></div>
+    <div class="cam-scroll">
+      <section id="camStage" class="cam-stage">
+        <div class="hud" id="camHud" hidden>
+          <div class="hud-head"><strong id="hudTitle"></strong><span id="hudClock" aria-live="off"></span></div>
+          <div class="hud-sub" id="hudSub"></div>
+          <div class="hud-track"><i id="hudBar"></i></div>
+        </div>
+        <div class="chips" id="camChips" hidden></div>
+        <div class="cam-view" id="camView">
+          <video id="camVideo" playsinline muted autoplay></video>
+          <canvas id="camCanvas"></canvas>
+          <div class="cam-msg" id="camMsg" hidden></div>
+          <div class="frame-badge" id="frameBadge" hidden></div>
+        </div>
+        <div class="counter">
+          <div class="counter-main"><span id="camCount" aria-live="polite">0</span><small id="camTarget"></small></div>
+          <div class="counter-side"><span id="camNow"></span><small id="camTempo"></small></div>
+        </div>
+        <div class="status" id="camStatus" aria-live="polite"></div>
+        <div class="actions" id="camPre">
+          <button class="btn primary big" type="button" id="camGo">▶ Démarrer</button>
+          <label class="check"><input type="checkbox" id="camAuto"> Départ automatique quand je suis bien cadré</label>
+        </div>
+        <div class="actions" id="camRest" hidden>
+          <button class="btn primary" type="button" id="camSkip">Passer le repos</button>
+          <button class="btn" type="button" id="camPlus15">+15 s</button>
+        </div>
+        <div class="actions row" id="camRun" hidden>
+          <button class="btn" type="button" id="camPause">Pause</button>
+          <button class="btn" type="button" id="camMinus" aria-label="Retirer une répétition">−1</button>
+          <button class="btn" type="button" id="camPlus" aria-label="Ajouter une répétition">+1</button>
+          <button class="btn" type="button" id="camZero">Zéro</button>
+          <button class="btn" type="button" id="camFlip">Caméra</button>
+        </div>
+        <div class="actions" id="camEnd" hidden>
+          <button class="btn good" type="button" id="camFinish">Terminer</button>
+          <button class="btn ghost" type="button" id="camNext" hidden>Exercice suivant</button>
+        </div>
+        <details class="diag" id="camDiagBox" hidden><summary>Diagnostic</summary><pre id="camDiag"></pre></details>
+      </section>
+      <section id="camResult" class="cam-result" hidden></section>
+    </div>
+  </div>
+
+  <dialog id="about" aria-labelledby="aboutTitle"></dialog>
+  <div id="toast" class="toast" role="status" hidden></div>
+  <noscript><p style="padding:16px">Activez JavaScript pour utiliser REPS.</p></noscript>
+
+  <script src="./engine.js"></script>
+  <script src="./wod.js"></script>
+  <script src="./audio.js"></script>
+  <script src="./vision.js"></script>
+  <script src="./session.js"></script>
+  <script src="./app.js"></script>
+</body>
+</html>
