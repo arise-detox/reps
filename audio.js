@@ -38,7 +38,10 @@
     },
     say: function (text) {
       if (!Sound.cfg.voice || !('speechSynthesis' in root)) return;
-      try { root.speechSynthesis.cancel(); var u = new SpeechSynthesisUtterance(String(text)); u.lang = 'fr-FR'; u.rate = 1.1; root.speechSynthesis.speak(u); } catch (e) { /* ignoré */ }
+      try {
+        root.speechSynthesis.cancel(); var u = new SpeechSynthesisUtterance(String(text)), sp = root.RepI18n ? root.RepI18n.speech() : { lang: 'fr-FR' };
+        u.lang = sp.lang; if (sp.voice) u.voice = sp.voice; u.rate = 1.1; root.speechSynthesis.speak(u);
+      } catch (e) { /* ignoré */ }
     },
     silence: function () { try { root.speechSynthesis.cancel(); } catch (e) { /* ignoré */ } },
     vibrate: function (p) { if (Sound.cfg.vibrate) { try { navigator.vibrate && navigator.vibrate(p); } catch (e) { /* ignoré */ } } }

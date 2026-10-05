@@ -2,7 +2,9 @@
    Un contrôleur reçoit les images de la caméra, fait tourner le moteur de comptage et publie un « état à afficher » (view). */
 (function (root) {
   'use strict';
-  var E = root.RepEngine, W = root.RepWod, S = root.RepSound;
+  var E = root.RepEngine, W = root.RepWod, S = root.RepSound, I = root.RepI18n;
+  var tr = function (s, p) { return I.t(s, p); };
+  var hintTr = function (h) { return h ? tr(h) : h; };
   var now = function () { return performance.now(); };
   var clock = W.fmtClock;
 
@@ -32,7 +34,7 @@
     };
     tick(); this.cdTimer = setInterval(tick, 1000);
   };
-  Base.prototype.cdHint = function () { return this.tracker && this.tracker.others > 0 ? 'Plusieurs personnes : je te suis (squelette rouge), les autres sont ignorées.' : 'Place-toi de profil, corps entier dans le cadre.'; };
+  Base.prototype.cdHint = function () { return this.tracker && this.tracker.others > 0 ? tr('Plusieurs personnes : je te suis (squelette rouge), les autres sont ignorées.') : tr('Place-toi de profil, corps entier dans le cadre.'); };
 
   /* Image de la caméra : suivi de la personne, puis traitement propre à la séance. */
   Base.prototype.onFrame = function (d) {
@@ -57,19 +59,19 @@
     var keys = this.armedKeys(), ok = !!frame && keys.every(function (k) { return E.measure(E.EX[k], frame) != null; });
     var was = this.framed; this.framed = ok;
     if (ok && !was) this.framedSince = t; if (!ok) this.framedSince = 0;
-    var missing = !frame ? 'Je ne te vois pas : entre dans le cadre.' : ok ? '' : 'Montre-toi en entier (' + this.needText() + ').';
-    if (this.phase === 'framing' || this.phase === 'rest') this.setStatus(ok ? 'Cadrage correct. Tu peux démarrer.' : missing, !ok);
+    var missing = !frame ? tr('Je ne te vois pas : entre dans le cadre.') : ok ? '' : tr('Montre-toi en entier ({p}).', { p: this.needText() });
+    if (this.phase === 'framing' || this.phase === 'rest') this.setStatus(ok ? tr('Cadrage correct. Tu peux démarrer.') : missing, !ok);
     if (this.phase === 'framing' && ok && this.settings.autoStart && t - this.framedSince > 1500 && !this.autoFired) { this.autoFired = true; this.start(); }
     this.emit();
   };
   Base.prototype.needText = function () {
     var need = {}; this.armedKeys().forEach(function (k) { need[E.EX[k].req || 'body'] = 1; });
-    return need.legs ? 'jambes comprises' : need.arms && !need.body ? 'bras et épaules' : 'tête aux pieds';
+    return need.legs ? tr('jambes comprises') : need.arms && !need.body ? tr('bras et épaules') : tr('tête aux pieds');
   };
   Base.prototype.pause = function (on) {
     if (this.phase !== 'running') return; this.paused = on == null ? !this.paused : !!on;
     if (this.vision) this.vision.setPaused(this.paused);
-    this.setStatus(this.paused ? 'En pause' : '', false); this.emit();
+    this.setStatus(this.paused ? tr('En pause') : '', false); this.emit();
   };
   Base.prototype.destroy = function () { this.destroyed = true; this.token++; clearInterval(this.cdTimer); clearInterval(this.timer); S.silence(); };
   Base.prototype.sheet = function () { return { frame: { ok: this.framed, show: this.phase === 'framing' || this.phase === 'rest' } }; };
@@ -91,7 +93,7 @@
     this.counter = E.create(this.key, { level: this.level }); this.autoFired = true;
     var go = function () {
       self.phase = 'running'; self.paused = false; self.lastTick = now(); self.msg = ''; self.setStatus('', false);
-      S.say('C’est parti'); S.go(); self.counter.reset(); self.startClock(); self.emit();
+      S.say(tr('C’est parti')); S.go(); self.counter.reset(); self.startClock(); self.emit();
       if (self.vision) self.vision.begin();
     };
     if (cd > 0) { if (this.vision) this.vision.begin(); this.countdown(cd, go); this.emit(); } else go();
@@ -104,7 +106,7 @@
       else if (self.phase === 'rest') {
         self.restLeft -= dt / 1000;
         if (self.restLeft <= 3 && !self.restCounting) { self.restCounting = true; self.beginSet(Math.max(2, Math.ceil(self.restLeft))); return; }
-        self.msg = 'Repos ' + Math.max(0, Math.ceil(self.restLeft)); self.msgSmall = false;
+        self.msg = tr('Repos {n}', { n: Math.max(0, Math.ceil(self.restLeft)) }); self.msgSmall = false;
       }
       self.emit();
     }, 200);
@@ -113,10 +115,10 @@
     var r = this.counter.update(frame, t); r.track = u;
     if (r.rep) { this.reps.push(this.elapsed); if (r.info) { this.log.push(r.info); if (this.log.length > 100) this.log.shift(); } this.onRep(); }
     this.partials = this.counter.machine.partials; this.last = r;
-    if (u && (u.state === 'lost' || u.state === 'search')) this.setStatus(u.others > 0 ? 'Je ne te vois plus. Quelqu’un d’autre est dans le cadre : je l’ignore.' : 'Je ne te vois plus : reviens dans le cadre.', true);
-    else if (!r.ready) this.setStatus('Montre-toi en entier dans le cadre.', true);
-    else if (r.hint) this.setStatus(r.hint, /Amplitude|non détecté/.test(r.hint));
-    else this.setStatus(this.def.short + ' · position ' + r.phase + (r.value != null && this.key !== 'burpee' && this.key !== 'row' ? ' · ' + Math.round(r.value) + '°' : '') + (u && u.others > 0 ? ' · autre personne ignorée' : ''), false);
+    if (u && (u.state === 'lost' || u.state === 'search')) this.setStatus(u.others > 0 ? tr('Je ne te vois plus. Quelqu’un d’autre est dans le cadre : je l’ignore.') : tr('Je ne te vois plus : reviens dans le cadre.'), true);
+    else if (!r.ready) this.setStatus(tr('Montre-toi en entier dans le cadre.'), true);
+    else if (r.hint) this.setStatus(hintTr(r.hint), /Amplitude|non détecté/.test(r.hint));
+    else this.setStatus(tr(this.def.short) + ' · ' + tr('position {p}', { p: tr(r.phase) }) + (r.value != null && this.key !== 'burpee' && this.key !== 'row' ? ' · ' + Math.round(r.value) + '°' : '') + (u && u.others > 0 ? ' · ' + tr('autre personne ignorée') : ''), false);
     this.emit();
   };
   Single.prototype.onRep = function () {
@@ -124,7 +126,7 @@
     if (this.settings.voice !== false && S.cfg.voice) S.say(n); else S.tick();
     S.vibrate(40);
     if (this.target && n >= this.target && !this.reached) {
-      this.reached = true; this.setStatus('Objectif atteint : ' + n + ' reps !', false);
+      this.reached = true; this.setStatus(tr('Objectif atteint : {n} reps !', { n: n }), false);
       var self = this, tok = this.token;
       setTimeout(function () { if (tok === self.token && self.phase === 'running') { S.alarm(); S.vibrate([200, 100, 200]); self.finishSet('objectif'); } }, S.cfg.voice ? 1100 : 400);
     }
@@ -137,11 +139,11 @@
     var n = this.counter ? this.counter.count : 0, sec = Math.round(this.elapsed / 1000);
     this.results.push({ n: n, sec: sec, target: this.target, reps: this.reps.slice(), partials: this.partials, reason: reason || 'manuel', amp: this.amp() });
     this.token++; clearInterval(this.timer);
-    S.say(n + ' répétition' + (n > 1 ? 's' : ''));
+    S.say(n > 1 ? tr('{n} répétitions', { n: n }) : tr('{n} répétition', { n: n }));
     this.setIndex++;
     if (this.setIndex >= this.sets) { this.finish(); return; }
     this.phase = 'rest'; this.restLeft = this.rest; this.restCounting = false; this.framed = false; this.autoFired = true;
-    this.setStatus('Série ' + this.setIndex + '/' + this.sets + ' terminée : ' + n + ' reps.', false);
+    this.setStatus(tr('Série {a}/{b} terminée : {n} reps.', { a: this.setIndex, b: this.sets, n: n }), false);
     var self = this;
     this.startClock(); this.emit();
     if (this.rest <= 3) { this.restCounting = true; self.beginSet(Math.max(2, this.rest || 3)); }
@@ -163,19 +165,19 @@
     else if (this.phase === 'rest' || this.phase === 'countdown' || this.phase === 'framing') { if (this.results.length) this.finish(); else this.env.onDone(null); }
   };
   Single.prototype.view = function () {
-    var c = this.counter ? this.counter.count : 0, r = this.last, setTxt = this.sets > 1 ? 'Série ' + Math.min(this.setIndex + 1, this.sets) + '/' + this.sets + ' · ' : '';
+    var c = this.counter ? this.counter.count : 0, r = this.last, setTxt = this.sets > 1 ? tr('Série {a}/{b}', { a: Math.min(this.setIndex + 1, this.sets), b: this.sets }) + ' · ' : '';
     var tempo = '', now2 = '';
-    if (this.reps.length >= 2) { var gaps = []; for (var i = 1; i < this.reps.length; i++) gaps.push((this.reps[i] - this.reps[i - 1]) / 1000); var avg = gaps.reduce(function (s, x) { return s + x; }, 0) / gaps.length; tempo = 'moy. ' + avg.toFixed(1).replace('.', ',') + ' s / rep'; }
+    if (this.reps.length >= 2) { var gaps = []; for (var i = 1; i < this.reps.length; i++) gaps.push((this.reps[i] - this.reps[i - 1]) / 1000); var avg = gaps.reduce(function (s, x) { return s + x; }, 0) / gaps.length; tempo = tr('moy. {v} s / rep', { v: avg.toFixed(1).replace('.', ',') }); }
     if (this.phase === 'running') now2 = clock(this.elapsed / 1000);
     var hud = null;
-    if (this.sets > 1 || this.phase === 'rest') hud = { title: setTxt + this.def.short, clock: this.phase === 'rest' ? clock(Math.max(0, this.restLeft)) : clock(this.elapsed / 1000), sub: this.phase === 'rest' ? 'Repos · prochaine série : ' + (this.setIndex + 1) + '/' + this.sets + (this.target ? ' · ' + this.target + ' reps' : '') : (this.target ? 'Objectif : ' + this.target + ' reps' : 'Série libre : touche « Terminer » quand tu as fini'), pct: this.phase === 'rest' ? 0 : this.target ? c / this.target : 0 };
-    return { kind: 'single', phase: this.phase, title: this.def.icon + ' ' + this.def.label, count: c, target: this.target, now: now2, tempo: tempo, status: this.status, warn: this.warn, msg: this.msg, msgSmall: this.msgSmall, hud: hud, chips: null, paused: this.paused, frame: this.sheet().frame, track: r && r.track, diag: this.diag(), key: this.key };
+    if (this.sets > 1 || this.phase === 'rest') hud = { title: setTxt + tr(this.def.short), clock: this.phase === 'rest' ? clock(Math.max(0, this.restLeft)) : clock(this.elapsed / 1000), sub: this.phase === 'rest' ? tr('Repos · prochaine série : {a}/{b}', { a: this.setIndex + 1, b: this.sets }) + (this.target ? ' · ' + tr('{n} reps', { n: this.target }) : '') : (this.target ? tr('Objectif : {n} reps', { n: this.target }) : tr('Série libre : touche « Terminer » quand tu as fini')), pct: this.phase === 'rest' ? 0 : this.target ? c / this.target : 0 };
+    return { kind: 'single', phase: this.phase, title: this.def.icon + ' ' + tr(this.def.label), count: c, target: this.target, now: now2, tempo: tempo, status: this.status, warn: this.warn, msg: this.msg, msgSmall: this.msgSmall, hud: hud, chips: null, paused: this.paused, frame: this.sheet().frame, track: r && r.track, diag: this.diag(), key: this.key };
   };
   Single.prototype.diag = function () {
     var r = this.last, m = this.counter && this.counter.machine; if (!m) return '';
     var u = this.key === 'burpee' || this.key === 'row' ? '' : '°';
-    return ['Mesure : ' + (r && r.value != null ? Math.round(r.value * 10) / 10 + u : '—'), 'Seuils : bas ≤ ' + m.low + u + ' · haut ≥ ' + m.high + u, 'État : ' + m.state + ' · corps ' + (r && r.ready ? 'exploitable' : 'non exploitable'),
-      'Détection : ' + (this.vision ? this.vision.delegate() + ' · ' + Math.round(this.vision.fps || 0) + ' images/s' : '—'), 'Reps : ' + m.count + ' · partielles ' + m.partials].join('\n');
+    return [tr('Mesure : {v}', { v: r && r.value != null ? Math.round(r.value * 10) / 10 + u : '—' }), tr('Seuils : bas ≤ {a} · haut ≥ {b}', { a: m.low + u, b: m.high + u }), tr('État : {s} · corps {c}', { s: m.state, c: r && r.ready ? tr('exploitable') : tr('non exploitable') }),
+      tr('Détection : {d}', { d: this.vision ? this.vision.delegate() + ' · ' + tr('{n} images/s', { n: Math.round(this.vision.fps || 0) }) : '—' }), tr('Reps : {n} · partielles {p}', { n: m.count, p: m.partials })].join('\n');
   };
 
   /* ================================================================ WOD */
@@ -223,11 +225,11 @@
     else S.say(this.announceStep(s));
     this.timer = setInterval(function () { self.tick(); }, 200); this.emit();
   };
-  Wod.prototype.announceStep = function (s) { if (!s) return ''; var lab = W.label({ k: s.k, n: s.n }); return (this.free ? 'C’est parti' : (s.target ? s.target + ' ' : '') + lab); };
+  Wod.prototype.announceStep = function (s) { if (!s) return ''; var lab = W.label({ k: s.k, n: s.n }); return (this.free ? tr('C’est parti') : (s.target ? s.target + ' ' : '') + lab); };
   Wod.prototype.announceInterval = function () {
     var s = this.step(); if (!s) return;
     var list = s.all ? s.moves : [s], txt = list.map(function (m) { return (m.target ? m.target + ' ' : '') + W.label({ k: m.k, n: m.n }); }).join(', ');
-    S.say((this.stepIndex + 1) + ' sur ' + this.wod.rounds + ' : ' + txt);
+    S.say(tr('{a} sur {b} : {txt}', { a: this.stepIndex + 1, b: this.wod.rounds, txt: txt }));
   };
   Wod.prototype.tick = function () {
     var t = now(), dt = t - this.lastTick, w = this.wod; this.lastTick = t;
@@ -237,9 +239,9 @@
       if (w.format === 'time' && w.cap && this.elapsed >= w.cap * 1000) { this.endWod(false); return; }
       if (w.format === 'interval') {
         if (this.sub === 'work') { this.workLeft -= dt / 1000; if (this.workLeft <= 0) this.endInterval(); else if (this.workLeft <= 3.2 && Math.abs(this.workLeft - Math.round(this.workLeft)) < .11 && Math.ceil(this.workLeft) !== this.lastBeep) { this.lastBeep = Math.ceil(this.workLeft); S.count(); } }
-        else { this.restLeft -= dt / 1000; this.msg = 'Repos ' + Math.max(0, Math.ceil(this.restLeft)); this.msgSmall = false; if (this.restLeft <= 0) this.nextInterval(); }
+        else { this.restLeft -= dt / 1000; this.msg = tr('Repos {n}', { n: Math.max(0, Math.ceil(this.restLeft)) }); this.msgSmall = false; if (this.restLeft <= 0) this.nextInterval(); }
       }
-      if (w.format === 'time' && this.roundRest > 0) { this.roundRest -= dt / 1000; this.msg = 'Repos ' + Math.max(0, Math.ceil(this.roundRest)); if (this.roundRest <= 0) { this.msg = ''; S.go(); S.say(this.announceStep(this.step())); } }
+      if (w.format === 'time' && this.roundRest > 0) { this.roundRest -= dt / 1000; this.msg = tr('Repos {n}', { n: Math.max(0, Math.ceil(this.roundRest)) }); if (this.roundRest <= 0) { this.msg = ''; S.go(); S.say(this.announceStep(this.step())); } }
     }
     this.emit();
   };
@@ -251,10 +253,10 @@
     else { r = this.counter.update(frame, t); if (r.rep) events = [{ k: this.currentKeys[0] }]; this.current = this.currentKeys[0]; }
     r.track = u; this.last = r;
     for (var i = 0; i < events.length; i++) this.onRep(events[i].k);
-    if (u && (u.state === 'lost' || u.state === 'search')) this.setStatus(u.others > 0 ? 'Je ne te vois plus. Quelqu’un d’autre est dans le cadre : je l’ignore.' : 'Je ne te vois plus : reviens dans le cadre.', true);
-    else if (!r.ready) this.setStatus('Montre-toi en entier dans le cadre.', true);
-    else if (this.multi) this.setStatus(this.current ? 'Détecté : ' + E.EX[this.current].short : 'Mouvement non reconnu : continue, je regarde.', false);
-    else this.setStatus(r.hint || (E.EX[this.currentKeys[0]].short + ' · position ' + r.phase), !!r.hint && /Amplitude|non détecté/.test(r.hint));
+    if (u && (u.state === 'lost' || u.state === 'search')) this.setStatus(u.others > 0 ? tr('Je ne te vois plus. Quelqu’un d’autre est dans le cadre : je l’ignore.') : tr('Je ne te vois plus : reviens dans le cadre.'), true);
+    else if (!r.ready) this.setStatus(tr('Montre-toi en entier dans le cadre.'), true);
+    else if (this.multi) this.setStatus(this.current ? tr('Détecté : {e}', { e: tr(E.EX[this.current].short) }) : tr('Mouvement non reconnu : continue, je regarde.'), false);
+    else this.setStatus(hintTr(r.hint) || (tr(E.EX[this.currentKeys[0]].short) + ' · ' + tr('position {p}', { p: tr(r.phase) })), !!r.hint && /Amplitude|non détecté/.test(r.hint));
     this.emit();
   };
   Wod.prototype.onRep = function (k) {
@@ -272,7 +274,7 @@
     var list = this.intervalMoves(), m = list[this.subIndex];
     if (m && m.target && this.stepCount >= m.target && this.subIndex < list.length - 1) {
       this.subIndex++; this.arm(); S.alarm();
-      var nx = list[this.subIndex]; this.setStatus('Suivant : ' + (nx.target ? nx.target + ' ' : '') + W.label(nx), false);
+      var nx = list[this.subIndex]; this.setStatus(tr('Suivant : {x}', { x: (nx.target ? nx.target + ' ' : '') + W.label(nx) }), false);
     }
   };
   /* Ordre imposé : exercice suivant. */
@@ -283,10 +285,10 @@
     if (!nxt) { this.endWod(true); return; }
     S.alarm(); S.vibrate([120, 60, 120]);
     var self = this;
-    if (lastOfRound && w.format === 'time' && w.restRound > 0) { this.roundRest = w.restRound; this.arm(); S.say('Tour terminé. Repos ' + W.fmtDur(w.restRound)); this.emit(); return; }
+    if (lastOfRound && w.format === 'time' && w.restRound > 0) { this.roundRest = w.restRound; this.arm(); S.say(tr('Tour terminé. Repos {d}', { d: W.fmtDur(w.restRound) })); this.emit(); return; }
     this.arm();
-    setTimeout(function () { if (!self.destroyed && self.phase === 'running') S.say('Suivant : ' + self.announceStep(nxt)); }, S.cfg.voice ? 700 : 0);
-    this.setStatus('Suivant : ' + (nxt.target ? nxt.target + ' ' : '') + W.label({ k: nxt.k, n: nxt.n }), false);
+    setTimeout(function () { if (!self.destroyed && self.phase === 'running') S.say(tr('Suivant : {x}', { x: self.announceStep(nxt) })); }, S.cfg.voice ? 700 : 0);
+    this.setStatus(tr('Suivant : {x}', { x: (nxt.target ? nxt.target + ' ' : '') + W.label({ k: nxt.k, n: nxt.n }) }), false);
   };
   /* Ordre libre : tout est suivi par exercice ; le WOD se termine quand tous les totaux sont atteints. */
   Wod.prototype.checkFree = function () {
@@ -298,14 +300,14 @@
     if (this.sub !== 'work') return;
     var s = this.step(), list = this.intervalMoves(), self = this;
     var ok = list.every(function (m) { return !m.target || (self.intervalTally[m.k] || 0) >= m.target; }) && list.some(function (m) { return m.target; });
-    if (ok && !this.intervalOk) { this.intervalOk = true; S.alarm(); this.setStatus('Intervalle réussi ! Repos jusqu’au prochain départ.', false); }
+    if (ok && !this.intervalOk) { this.intervalOk = true; S.alarm(); this.setStatus(tr('Intervalle réussi ! Repos jusqu’au prochain départ.'), false); }
   };
   Wod.prototype.endInterval = function () {
     var s = this.step(), list = this.intervalMoves(), self = this, w = this.wod;
     var ok = list.every(function (m) { return !m.target || (self.intervalTally[m.k] || 0) >= m.target; }) && list.some(function (m) { return m.target; });
     this.intervals.push({ i: this.stepIndex, moves: list.map(function (m) { return { k: m.k, target: m.target, n: self.intervalTally[m.k] || 0 }; }), ok: ok });
     if (this.stepIndex + 1 >= w.rounds) { this.endWod(true); return; }
-    if (w.rest > 0) { this.sub = 'rest'; this.restLeft = w.rest; S.alarm(); S.say('Repos'); this.arm(); }
+    if (w.rest > 0) { this.sub = 'rest'; this.restLeft = w.rest; S.alarm(); S.say(tr('Repos')); this.arm(); }
     else this.nextInterval();
   };
   Wod.prototype.nextInterval = function () {
@@ -336,12 +338,12 @@
   };
   Wod.prototype.end = function () { if (this.phase === 'running' || this.phase === 'countdown' || this.phase === 'framing') { if (this.phase === 'running') this.endWod(false); else this.env.onDone(null); } };
   Wod.prototype.view = function () {
-    var w = this.wod, s = this.step(), self = this, hud = { title: (w.name ? w.name + ' · ' : '') + W.FORMATS[w.format].split(' (')[0], clock: '', sub: '', pct: 0 }, chips = [];
+    var w = this.wod, s = this.step(), self = this, hud = { title: (w.name ? w.name + ' · ' : '') + W.formatName(w.format).split(' (')[0], clock: '', sub: '', pct: 0 }, chips = [];
     var cur = this.free || !s ? null : s.k;
     var req = w.format === 'time' ? W.requiredTotals(w) : {};
     if (w.format === 'interval') {
       var list = this.intervalMoves(), left = Math.max(0, Math.ceil(this.sub === 'work' ? this.workLeft : this.restLeft));
-      hud.clock = clock(left); hud.title = 'Intervalle ' + Math.min(this.stepIndex + 1, w.rounds) + '/' + w.rounds; hud.sub = this.sub === 'work' ? (this.intervalOk ? 'Réussi ✓ · repos jusqu’au prochain départ' : 'Effort : ' + W.describe({ format: 'interval', moves: list.map(function (m) { return { k: m.k, reps: m.target, n: m.n }; }), work: w.work, rest: 0, rounds: 1, each: 'all' }).replace(/^.*? · /, '').replace(/ \(tous.*$/, '')) : 'Repos';
+      hud.clock = clock(left); hud.title = tr('Intervalle {a}/{b}', { a: Math.min(this.stepIndex + 1, w.rounds), b: w.rounds }); hud.sub = this.sub === 'work' ? (this.intervalOk ? tr('Réussi ✓ · repos jusqu’au prochain départ') : tr('Effort : {x}', { x: list.map(function (m) { return (m.target ? m.target + ' ' : '') + I.lower(W.label(m)); }).join(', ') })) : tr('Repos');
       hud.pct = this.sub === 'work' ? 1 - Math.max(0, this.workLeft) / w.work : 1 - Math.max(0, this.restLeft) / Math.max(1, w.rest);
       list.forEach(function (m) { var n = self.intervalTally[m.k] || 0; chips.push({ k: m.k, icon: E.EX[m.k].icon, label: W.label(m), n: n, of: m.target || 0, active: self.free ? (self.current ? self.current === m.k : true) : list[Math.min(self.subIndex, list.length - 1)].k === m.k, done: !!m.target && n >= m.target }); });
     } else {
@@ -349,18 +351,18 @@
       w.moves.forEach(function (m) { if (seen[m.k]) return; seen[m.k] = 1; var n = self.tallies[m.k] || 0, of = w.format === 'time' ? req[m.k] : 0; chips.push({ k: m.k, icon: E.EX[m.k].icon, label: W.label(m), n: n, of: of, active: self.free ? self.current === m.k : cur === m.k, done: !!of && n >= of }); });
       if (w.format === 'amrap') {
         var rd, ex; if (this.free) { var p = W.freeProgress(w, this.tallies); rd = p.roundsDone; ex = p.extra; } else { var nn = w.moves.length; rd = Math.floor(this.stepIndex / nn); ex = 0; for (var i = rd * nn; i < this.stepIndex; i++) ex += W.targetFor(w, Math.floor(i / nn), w.moves[i % nn]); ex += this.stepCount; }
-        hud.clock = clock(Math.max(0, w.cap - this.elapsed / 1000)); hud.sub = rd + ' tour' + (rd > 1 ? 's' : '') + ' + ' + ex + ' rep' + (ex > 1 ? 's' : '') + (!this.free && s ? ' · ' + (s.target ? s.target + ' ' : '') + W.label({ k: s.k, n: s.n }) : ''); hud.pct = Math.min(1, this.elapsed / (w.cap * 1000));
+        hud.clock = clock(Math.max(0, w.cap - this.elapsed / 1000)); hud.sub = W.roundsText(rd, ex) + (!this.free && s ? ' · ' + (s.target ? s.target + ' ' : '') + W.label({ k: s.k, n: s.n }) : ''); hud.pct = Math.min(1, this.elapsed / (w.cap * 1000));
       } else {
         var p2 = this.free ? W.freeProgress(w, this.tallies) : null, rdone = this.free ? p2.roundsDone : Math.floor(this.stepIndex / w.moves.length);
         var totalReq = 0, doneReq = 0; for (var kk in req) { totalReq += req[kk]; doneReq += Math.min(req[kk], this.tallies[kk] || 0); }
         hud.clock = clock(this.elapsed / 1000); hud.pct = totalReq ? doneReq / totalReq : 0;
-        hud.sub = (w.rounds > 1 ? 'Tour ' + Math.min(rdone + 1, w.rounds) + '/' + w.rounds : 'Tour 1') + (!this.free && s ? ' · ' + (s.target ? s.target + ' ' : '') + W.label({ k: s.k, n: s.n }) : ' · ordre libre') + (w.cap ? ' · cap ' + W.fmtDur(w.cap) : '');
+        hud.sub = (w.rounds > 1 ? tr('Tour {a}/{b}', { a: Math.min(rdone + 1, w.rounds), b: w.rounds }) : tr('Tour 1')) + (!this.free && s ? ' · ' + (s.target ? s.target + ' ' : '') + W.label({ k: s.k, n: s.n }) : ' · ' + tr('ordre libre')) + (w.cap ? tr(' · cap {d}', { d: W.fmtDur(w.cap) }) : '');
       }
     }
     var count = this.free ? (this.current ? this.tallies[this.current] || 0 : W.totalOf(this.tallies)) : (w.format === 'interval' && !s ? 0 : this.stepCount);
     var target = !this.free && s && !s.all && s.target ? s.target : 0;
-    var title = this.free ? '🏆 ' + (w.name || 'WOD') + ' · libre' : (s ? (s.all ? '🏆 ' + (w.name || 'WOD') : E.EX[s.k].icon + ' ' + W.label({ k: s.k, n: s.n })) : '🏆 ' + (w.name || 'WOD'));
-    return { kind: 'wod', phase: this.phase, title: title, count: count, target: target, now: this.phase === 'running' ? clock(this.elapsed / 1000) : '', tempo: this.free && this.current ? E.EX[this.current].short : '', status: this.status, warn: this.warn, msg: this.msg, msgSmall: this.msgSmall, hud: hud, chips: chips, paused: this.paused, frame: this.sheet().frame, track: this.last && this.last.track, diag: '', free: this.free, canSkip: !this.free && w.format !== 'interval' };
+    var title = this.free ? '🏆 ' + (w.name || 'WOD') + ' · ' + tr('libre') : (s ? (s.all ? '🏆 ' + (w.name || 'WOD') : E.EX[s.k].icon + ' ' + W.label({ k: s.k, n: s.n })) : '🏆 ' + (w.name || 'WOD'));
+    return { kind: 'wod', phase: this.phase, title: title, count: count, target: target, now: this.phase === 'running' ? clock(this.elapsed / 1000) : '', tempo: this.free && this.current ? tr(E.EX[this.current].short) : '', status: this.status, warn: this.warn, msg: this.msg, msgSmall: this.msgSmall, hud: hud, chips: chips, paused: this.paused, frame: this.sheet().frame, track: this.last && this.last.track, diag: '', free: this.free, canSkip: !this.free && w.format !== 'interval' };
   };
 
   root.RepSession = { Single: Single, Wod: Wod };

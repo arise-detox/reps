@@ -37,6 +37,14 @@ Contrôleurs (`session.js`) exécutés avec des poses injectées, sans caméra :
 - Aucun débordement horizontal à 320 px sur les trois onglets et la session. Aucune erreur dans la console.
 - Hors-ligne : le service worker préchargé 14 fichiers de l'appli et garde en cache la bibliothèque et le modèle (4 fichiers, environ 15 Mo en tout) après un premier usage. Le service worker n'utilise que des caches préfixés `reps-` (il ne touche pas aux autres applis du même domaine).
 
+## Langues (version 1.1)
+
+- Sélecteur FR | AZ en haut à droite : bascule immédiate de l'interface, du titre de la page, des conseils de placement, des messages de séance et des textes de WOD ; choix conservé après rechargement et dans la sauvegarde.
+- Tous les écrans parcourus en azéri (exercices, WOD, présélections, formats, Carnet avec séances fictives, à-propos) et des séances simulées (exercice seul avec repos, intervalles, AMRAP en détection automatique) : aucun texte français oublié (relevé automatique des textes sans traduction : aucun).
+- `tests/i18n.test.cjs` : paramètres identiques des deux côtés pour les 300 textes du dictionnaire, aucune traduction vide, noms d'exercices azéris reconnus par le lecteur de WOD, lecture de WOD écrits en azéri, durées et scores en azéri.
+- Aucun débordement horizontal à 320 px en azéri.
+- **Limite** : la traduction azérie n'a pas été relue par une personne de langue azérie (termes sportifs choisis au plus courant : dartınma, şınav, çömelmə, raund, təkrar…) ; la voix de synthèse azérie dépend du téléphone (repli sur une voix turque), non testée sur iPhone.
+
 ## Ce qui n'a pas été testé
 
 - **Aucun iPhone réel** : caméra en mode application installée, accélération graphique, voix de synthèse, vibrations, verrou d'écran.

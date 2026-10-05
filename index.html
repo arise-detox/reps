@@ -15,23 +15,29 @@
   <title>REPS — compteur de répétitions par caméra</title>
 </head>
 <body>
-  <a class="skip" href="#view">Aller au contenu</a>
+  <a class="skip" href="#view" data-i18n>Aller au contenu</a>
   <header class="top">
-    <div class="brand"><span class="logo" aria-hidden="true">R</span><div><strong>REPS</strong><small>compteur par caméra</small></div></div>
-    <button class="icon-btn" id="aboutBtn" type="button" aria-label="À propos et limites">ⓘ</button>
+    <div class="brand"><span class="logo" aria-hidden="true">R</span><div><strong>REPS</strong><small data-i18n>compteur par caméra</small></div></div>
+    <div class="top-actions">
+      <div class="lang" role="group" aria-label="Langue / Dil">
+        <button type="button" data-lang="fr" aria-pressed="true" lang="fr" title="Français">FR</button>
+        <button type="button" data-lang="az" aria-pressed="false" lang="az" title="Azərbaycan dili">AZ</button>
+      </div>
+      <button class="icon-btn" id="aboutBtn" type="button" aria-label="À propos et limites" data-i18n-attr="aria-label">ⓘ</button>
+    </div>
   </header>
 
   <main id="view" tabindex="-1"></main>
 
-  <nav class="tabs" aria-label="Navigation principale">
-    <button type="button" data-tab="exo"><span aria-hidden="true">🎯</span>Exercice</button>
-    <button type="button" data-tab="wod"><span aria-hidden="true">🏆</span>WOD</button>
-    <button type="button" data-tab="book"><span aria-hidden="true">📒</span>Carnet</button>
+  <nav class="tabs" aria-label="Navigation principale" data-i18n-attr="aria-label">
+    <button type="button" data-tab="exo"><span aria-hidden="true">🎯</span><i data-i18n>Exercice</i></button>
+    <button type="button" data-tab="wod"><span aria-hidden="true">🏆</span><i data-i18n>WOD</i></button>
+    <button type="button" data-tab="book"><span aria-hidden="true">📒</span><i data-i18n>Carnet</i></button>
   </nav>
 
   <!-- Session caméra (exercice seul ou WOD) -->
-  <div id="cam" class="cam" hidden role="dialog" aria-modal="true" aria-label="Compteur de répétitions">
-    <div class="cam-top"><strong id="camTitle">Compteur</strong><button class="icon-btn" id="camClose" type="button" aria-label="Quitter la séance">✕</button></div>
+  <div id="cam" class="cam" hidden role="dialog" aria-modal="true" aria-label="Compteur de répétitions" data-i18n-attr="aria-label">
+    <div class="cam-top"><strong id="camTitle">Compteur</strong><button class="icon-btn" id="camClose" type="button" aria-label="Quitter la séance" data-i18n-attr="aria-label">✕</button></div>
     <div class="cam-scroll">
       <section id="camStage" class="cam-stage">
         <div class="hud" id="camHud" hidden>
@@ -52,25 +58,25 @@
         </div>
         <div class="status" id="camStatus" aria-live="polite"></div>
         <div class="actions" id="camPre">
-          <button class="btn primary big" type="button" id="camGo">▶ Démarrer</button>
-          <label class="check"><input type="checkbox" id="camAuto"> Départ automatique quand je suis bien cadré</label>
+          <button class="btn primary big" type="button" id="camGo" data-i18n>▶ Démarrer</button>
+          <label class="check"><input type="checkbox" id="camAuto"> <span data-i18n>Départ automatique quand je suis bien cadré</span></label>
         </div>
         <div class="actions" id="camRest" hidden>
-          <button class="btn primary" type="button" id="camSkip">Passer le repos</button>
-          <button class="btn" type="button" id="camPlus15">+15 s</button>
+          <button class="btn primary" type="button" id="camSkip" data-i18n>Passer le repos</button>
+          <button class="btn" type="button" id="camPlus15" data-i18n>+15 s</button>
         </div>
         <div class="actions row" id="camRun" hidden>
           <button class="btn" type="button" id="camPause">Pause</button>
-          <button class="btn" type="button" id="camMinus" aria-label="Retirer une répétition">−1</button>
-          <button class="btn" type="button" id="camPlus" aria-label="Ajouter une répétition">+1</button>
-          <button class="btn" type="button" id="camZero">Zéro</button>
-          <button class="btn" type="button" id="camFlip">Caméra</button>
+          <button class="btn" type="button" id="camMinus" aria-label="Retirer une répétition" data-i18n-attr="aria-label">−1</button>
+          <button class="btn" type="button" id="camPlus" aria-label="Ajouter une répétition" data-i18n-attr="aria-label">+1</button>
+          <button class="btn" type="button" id="camZero" data-i18n>Zéro</button>
+          <button class="btn" type="button" id="camFlip" data-i18n>Caméra</button>
         </div>
         <div class="actions" id="camEnd" hidden>
           <button class="btn good" type="button" id="camFinish">Terminer</button>
-          <button class="btn ghost" type="button" id="camNext" hidden>Exercice suivant</button>
+          <button class="btn ghost" type="button" id="camNext" hidden data-i18n>Exercice suivant</button>
         </div>
-        <details class="diag" id="camDiagBox" hidden><summary>Diagnostic</summary><pre id="camDiag"></pre></details>
+        <details class="diag" id="camDiagBox" hidden><summary data-i18n>Diagnostic</summary><pre id="camDiag"></pre></details>
       </section>
       <section id="camResult" class="cam-result" hidden></section>
     </div>
@@ -80,6 +86,7 @@
   <div id="toast" class="toast" role="status" hidden></div>
   <noscript><p style="padding:16px">Activez JavaScript pour utiliser REPS.</p></noscript>
 
+  <script src="./i18n.js"></script>
   <script src="./engine.js"></script>
   <script src="./wod.js"></script>
   <script src="./audio.js"></script>

@@ -53,19 +53,19 @@
   /* Reconnaissance de l’exercice à partir du texte d’une consigne (« 15 Tractions », « Thrusters avec un disque »...). */
   function norm(t) { return String(t || '').toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, ''); }
   var RULES = [
-    ['burpee',    /burpee|navy ?seal/],
+    ['burpee',    /burpee|navy ?seal|\bburpi\b|\bberpi\b/],
     ['hangRaise', /toes?[- ]?to[- ]?bar|knees?[- ]?to[- ]?elbow|\bt2b\b|\bk2e\b/],
-    ['lunge',     /fentes?|lunges?/],
-    ['pullup',    /traction(?!s? horizontale)|pull[- ]?ups?/],
+    ['lunge',     /fentes?|lunges?|add[ıi]mlama|\blanc\b/],
+    ['pullup',    /traction(?!s? horizontale)|pull[- ]?ups?|dart[ıi]nma|turnik/],
     ['dips',      /\bdips?\b/],
-    ['pushup',    /\bpompes?\b|push[- ]?ups?/],
-    ['press',     /(shoulders?|military|overhead|push) ?press|developpe (devant|militaire|epaules)|ground to overhead|\bgto\b|\bgao\b/],
-    ['bench',     /developpe (couche|incline|decline)|bench|incline press|decline press/],
-    ['row',       /tirage|bent[- ]?over row|pendlay|rowing|\brow\b|t[- ]?bar/],
-    ['legpress',  /\bpresse\b|leg ?press/],
-    ['squat',     /squat|thruster|wall ?balls?|air squat/],
-    ['hinge',     /swing|deadlift|souleve de terre/],
-    ['situp',     /sit[- ]?ups?|\bv[- ]?ups?\b|crunch/]
+    ['pushup',    /\bpompes?\b|push[- ]?ups?|\bs[ıi]nav\b|otjimaniya/],
+    ['press',     /(shoulders?|military|overhead|push) ?press|developpe (devant|militaire|epaules)|ground to overhead|\bgto\b|\bgao\b|ciyin press/],
+    ['bench',     /developpe (couche|incline|decline)|bench|incline press|decline press|skamya|yatan press/],
+    ['row',       /tirage|bent[- ]?over row|pendlay|rowing|\brow\b|t[- ]?bar|\bdartma\b/],
+    ['legpress',  /\bpresse\b|leg ?press|ayaq press/],
+    ['squat',     /squat|thruster|wall ?balls?|air squat|comelm[əe]|skuat/],
+    ['hinge',     /swing|deadlift|souleve de terre|olu qald[ıi]rma|svinq/],
+    ['situp',     /sit[- ]?ups?|\bv[- ]?ups?\b|crunch|qar[ıi]n/]
   ];
   function detect(text) {
     var t = norm(text);

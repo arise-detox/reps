@@ -10,6 +10,7 @@ Une application web (PWA) qui compte tes répétitions avec la caméra de ton t�
 - Carnet : historique, records par exercice, sauvegarde et restauration.
 - 13 exercices : squats, fentes, pompes, tractions, dips, sit-ups, soulevés/swings, développés, toes to bar, développé couché/incliné, tirages/rowing, presse à cuisses, burpees.
 - Analyse aussi une **vidéo** du téléphone, au lieu de la caméra.
+- **Deux langues** : français et azerbaïdjanais (sélecteur **FR | AZ** en haut à droite, choix mémorisé ; la langue du navigateur est utilisée au premier lancement). Interface, conseils de placement, annonces vocales et lecture d'un WOD écrit en azéri (« AMRAP 12 dəq: 5 dartınma, 10 şınav, 15 çömelmə »). La traduction azérie a été rédigée sans relecture par une personne de langue azérie : toute correction est la bienvenue. La voix de synthèse utilise une voix azérie si le téléphone en a une, sinon une voix turque (langue très proche).
 
 Ce compteur est issu de celui de ROAD TO GI, isolé en application autonome (ROAD TO GI n'est pas modifiée).
 
@@ -68,6 +69,7 @@ Ouvre le site dans Safari, puis Partager > Sur l'écran d'accueil > Ajouter. Pre
 ```text
 index.html            interface et session caméra
 styles.css            thème (blanc et rouge)
+i18n.js               langues : dictionnaire français → azerbaïdjanais, sélecteur FR | AZ
 engine.js             moteur : exercices, angles, machine à états, suivi d'une personne, reconnaissance, compteur multi-exercices
 wod.js                WOD : modèle, lecture de texte, présélections, progression, scores
 vision.js             caméra ou vidéo, modèle MediaPipe, boucle d'analyse, squelette
@@ -84,4 +86,4 @@ VERIFICATION.md       contrôles réalisés
 
 ## Tests
 
-`node tests/engine.test.cjs` et `node tests/wod.test.cjs` (Node.js 18 ou plus). Ils couvrent la reconnaissance des textes, les machines à états, la reconnaissance d'exercice (trajectoires simulées), le compteur multi-exercices, la lecture des WOD, les étapes, les totaux, la progression et les scores. `VERIFICATION.md` décrit aussi les essais sur poses enregistrées de vidéos libres.
+`node tests/engine.test.cjs`, `node tests/wod.test.cjs` et `node tests/i18n.test.cjs` (Node.js 18 ou plus). Ils couvrent la reconnaissance des textes, les machines à états, la reconnaissance d'exercice (trajectoires simulées), le compteur multi-exercices, la lecture des WOD, les étapes, les totaux, la progression et les scores, ainsi que le dictionnaire azéri (mêmes paramètres des deux côtés, aucun texte vide, chaque exercice reconnu sous son nom azéri). `VERIFICATION.md` décrit aussi les essais sur poses enregistrées de vidéos libres.

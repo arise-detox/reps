@@ -4,11 +4,11 @@
    - La bibliothèque de détection et le modèle (jsDelivr, storage.googleapis.com, environ 15 Mo) sont gardés dans un cache à part
      après le premier chargement, pour fonctionner sans réseau ensuite. Ce cache survit aux mises à jour de l'appli.
    Préfixes propres à REPS : ne touche jamais aux caches des autres applis du même domaine (ARISE, ROAD TO GI, Ma Routine…). */
-const VERSION = 'v1.0.0';
+const VERSION = 'v1.1.0';
 const PREFIX = 'reps-' + new URL(self.registration.scope).pathname + '-';
 const CACHE = PREFIX + VERSION;
 const ML = 'reps-ml-v1';
-const SHELL = ['./', './index.html', './styles.css', './engine.js', './wod.js', './audio.js', './vision.js', './session.js', './app.js', './manifest.webmanifest',
+const SHELL = ['./', './index.html', './styles.css', './i18n.js', './engine.js', './wod.js', './audio.js', './vision.js', './session.js', './app.js', './manifest.webmanifest',
   './icons/icon-192.png', './icons/icon-512.png', './icons/icon-maskable-512.png', './icons/apple-touch-icon.png'];
 const ML_HOSTS = ['cdn.jsdelivr.net', 'storage.googleapis.com'];
 

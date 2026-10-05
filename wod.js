@@ -2,18 +2,29 @@
    Aucune dépendance au navigateur : testable seul. Les exercices viennent de RepEngine (engine.js). */
 (function (root, factory) {
   'use strict';
-  var api = factory(function () { return typeof module !== 'undefined' && module.exports ? require('./engine.js') : root.RepEngine; });
+  var api = factory(function () { return typeof module !== 'undefined' && module.exports ? require('./engine.js') : root.RepEngine; }, root);
   if (typeof module !== 'undefined' && module.exports) module.exports = api; else root.RepWod = api;
-})(typeof window !== 'undefined' ? window : this, function (engine) {
+})(typeof window !== 'undefined' ? window : this, function (engine, root) {
   'use strict';
+
+  /* Traduction : si RepI18n (i18n.js) est chargé, les textes passent par lui ; sinon le français d'origine est renvoyé (tests sous Node). */
+  function fill(s, p) { return p ? String(s).replace(/\{(\w+)\}/g, function (m, k) { return p[k] != null ? p[k] : m; }) : s; }
+  function i18n() {
+    if (root && root.RepI18n) return root.RepI18n;
+    if (typeof module !== 'undefined' && module.exports && typeof require === 'function') { try { return require('./i18n.js'); } catch (e) { /* sans traduction */ } }
+    return null;
+  }
+  function T(s, p) { var i = i18n(); return i ? i.t(s, p) : fill(s, p); }
+  function lower(s) { var i = i18n(); return i && i.lower ? i.lower(s) : String(s).toLowerCase(); }
 
   var FORMATS = { time: 'Pour le temps', amrap: 'AMRAP (max de tours)', interval: 'Intervalles (EMOM, Tabata)' };
   var LIMITS = { reps: 999, rounds: 99, cap: 10800, work: 3600, moves: 12 };
 
   function num(v, def, min, max) { var n = Math.floor(Number(v)); return isFinite(n) && v !== '' && v !== null && v !== undefined ? Math.min(max, Math.max(min, n)) : def; }
   function fmtClock(sec) { sec = Math.max(0, Math.round(sec)); var h = Math.floor(sec / 3600), m = Math.floor((sec % 3600) / 60), s = sec % 60; return (h ? h + ':' + String(m).padStart(2, '0') : m) + ':' + String(s).padStart(2, '0'); }
-  function fmtDur(sec) { sec = Math.round(sec); if (sec < 60) return sec + ' s'; var m = Math.floor(sec / 60), r = sec % 60; return r ? m + ' min ' + String(r).padStart(2, '0') : m + ' min'; }
-  function label(m) { var E = engine(); return m.n || (E.EX[m.k] ? E.EX[m.k].short : m.k); }
+  function fmtDur(sec) { sec = Math.round(sec); if (sec < 60) return T('{n} s', { n: sec }); var m = Math.floor(sec / 60), r = sec % 60; return r ? T('{m} min {s}', { m: m, s: String(r).padStart(2, '0') }) : T('{m} min', { m: m }); }
+  function formatName(f) { return T(FORMATS[f] || FORMATS.time); }
+  function label(m) { var E = engine(); return m.n || (E.EX[m.k] ? T(E.EX[m.k].short) : m.k); }
 
   /* Nettoie et borne un WOD (venant du formulaire, d'un texte, d'une sauvegarde importée…). */
   function normalize(w) {
@@ -41,10 +52,10 @@
   }
   function validate(w) {
     var errs = [];
-    if (!w.moves.length) errs.push('Ajoute au moins un exercice.');
+    if (!w.moves.length) errs.push(T('Ajoute au moins un exercice.'));
     if (w.format === 'time' && w.scheme) { if (w.moves.some(function (m) { return !m.reps; })) { /* reps = schéma : accepté */ } }
-    else if (w.format !== 'interval' && w.moves.some(function (m) { return !m.reps; })) errs.push('Indique un nombre de répétitions pour chaque exercice.');
-    if (w.format === 'amrap' && !w.cap) errs.push('Indique la durée de l’AMRAP.');
+    else if (w.format !== 'interval' && w.moves.some(function (m) { return !m.reps; })) errs.push(T('Indique un nombre de répétitions pour chaque exercice.'));
+    if (w.format === 'amrap' && !w.cap) errs.push(T('Indique la durée de l’AMRAP.'));
     return errs;
   }
 
@@ -99,12 +110,12 @@
 
   /* ---------- lecture d'un WOD écrit en français ou en anglais ---------- */
   function strip(t) { return String(t || '').toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '').replace(/[’‘´`]/g, "'"); }
-  var HEADER_WORDS = /amrap|emom|tabata|for time|pour le temps|chrono|time ?cap|\bcap\b|rounds?|tours?|toutes les|every|\bon\b|\boff\b|repos|rest/;
-  var STRIP_HEAD = /(?:amrap|emom)\s*(?:de|en)?\s*\d*\s*(?:min(?:utes?)?|mn|')?|tabata|\d+\s*(?:rounds?|tours?|s[eé]ries?|intervalles?)\b|for time|pour le temps|(?:time ?cap|cap|plafond)\s*(?:de|:|=)?\s*\d+\s*(?:min|mn)|(?:toutes les|every)\s*\d*\s*(?:min(?:utes?)?|mn)(?:\s*(?:pendant|for)\s*\d+\s*(?:min(?:utes?)?|mn))?|\d+\s*(?:min(?:utes?)?|mn)\b|repos[^,;\n]*/gi;
+  var HEADER_WORDS = /amrap|emom|tabata|for time|pour le temps|vaxt üçün|vaxt ucun|chrono|time ?cap|\bcap\b|rounds?|tours?|raund|toutes les|every|\bon\b|\boff\b|repos|istirah[əe]t|rest/;
+  var STRIP_HEAD = /(?:amrap|emom)\s*(?:de|en)?\s*\d*\s*(?:min(?:utes?)?|mn|')?|tabata|\d+\s*(?:rounds?|tours?|raund(?:lar)?|s[eé]ries?|intervalles?|interval(?:lar)?)\b|for time|pour le temps|vaxt [üu]çün|(?:time ?cap|cap|plafond)\s*(?:de|:|=)?\s*\d+\s*(?:min|mn)|(?:toutes les|every)\s*\d*\s*(?:min(?:utes?)?|mn)(?:\s*(?:pendant|for)\s*\d+\s*(?:min(?:utes?)?|mn))?|\d+\s*(?:min(?:utes?)?|mn|d[əe]q(?:iq[əe])?)\b|(?:repos|istirah[əe]t)[^,;\n]*/gi;
   var SCHEME_RX_G = /(?:^|[^\d])\d{1,3}(?:\s*[-–]\s*\d{1,3}){1,9}(?!\d)/g;
   function parse(text) {
     var E = engine(), raw = String(text || '').trim(), s = strip(raw), warn = [], w = { moves: [], format: 'time' };
-    if (!s) return { wod: normalize(w), warn: ['Le texte est vide.'] };
+    if (!s) return { wod: normalize(w), warn: [T('Le texte est vide.')] };
     var m;
     // nom : « Cindy : AMRAP 20 min … » (le mot avant le premier « : » n'est ni un exercice ni un mot-clé)
     var head = raw.match(/^\s*([A-Za-zÀ-ÿ'’ \-]{2,28})\s*[:：]\s*\S/);
@@ -118,12 +129,12 @@
     else if ((m = body.match(/(?:toutes les|every)\s*(\d+)?\s*(min|minutes?|mn)[^0-9]{0,24}(?:pendant|for|x)?\s*(\d+)\s*(?:min|mn|fois|rounds?|tours?)?/))) { w.format = 'interval'; w.work = (m[1] ? +m[1] : 1) * 60; w.rest = 0; var tot = +m[3]; w.rounds = tot ? Math.max(1, Math.round(tot * 60 / w.work)) : 10; }
     else if ((m = body.match(/(\d+)\s*(?:s|sec|secondes?)\s*(?:on|travail|work|effort)\D{0,6}(\d+)\s*(?:s|sec|secondes?)\s*(?:off|repos|rest|pause)/))) { w.format = 'interval'; w.work = +m[1]; w.rest = +m[2]; w.rounds = 8; }
     if (w.format === 'interval') {
-      var r2 = body.match(/(\d+)\s*(?:rounds?|tours?|series?|intervalles?)/); if (r2) w.rounds = +r2[1];
+      var r2 = body.match(/(\d+)\s*(?:rounds?|tours?|series?|intervalles?|interval(?:lar)?|raund(?:lar)?)/); if (r2) w.rounds = +r2[1];
       if (/\ball\b|tous|chaque minute.{0,20}(?:\d+.*\d+)/.test(body) && /chaque|each|every/.test(body) && /\+|,|;|\n/.test(bodyRaw)) w.each = 'all';
     }
     // plafond de temps et repos entre tours
     if ((m = body.match(/(?:time ?cap|cap|plafond)\s*(?:de|:|=)?\s*(\d+)\s*(?:min|mn)/))) { if (w.format !== 'amrap') w.cap = +m[1] * 60; }
-    if ((m = body.match(/repos\s*(?:entre (?:les )?(?:tours|rounds))?\s*(?:de|:)?\s*(\d+)\s*(min|mn|s|sec)\b/)) && w.format === 'time') w.restRound = m[2][0] === 'm' ? +m[1] * 60 : +m[1];
+    if ((m = body.match(/(?:repos|istirah[əe]t)\s*(?:entre (?:les )?(?:tours|rounds))?\s*(?:de|:)?\s*(\d+)\s*(min|mn|d[əe]q|s|sec|san)\b/)) && w.format === 'time') w.restRound = (m[2][0] === 'm' || m[2][0] === 'd') ? +m[1] * 60 : +m[1];
     // tours et schéma
     var sch = body.match(/(?:^|[^\d])(\d{1,3}(?:\s*[-–]\s*\d{1,3}){1,9})(?!\d)/);
     if (sch && w.format === 'time') {
@@ -131,12 +142,12 @@
       // « 3-2-1 » est un schéma ; « 12-15 reps » (fourchette) n'en est pas : on exige ≥ 2 nombres décroissants/croissants simples
       w.scheme = nums;
     }
-    if (w.format === 'time' && !w.scheme && (m = body.match(/(\d+)\s*(?:rounds?|tours?|series?)\b/))) w.rounds = +m[1];
+    if (w.format === 'time' && !w.scheme && (m = body.match(/(\d+)\s*(?:rounds?|tours?|series?|raund(?:lar)?)\b/))) w.rounds = +m[1];
     // exercices : on retire d'abord les mots d'en-tête (AMRAP, tours, durées…) de chaque morceau
     var pieces = bodyRaw.split(/\n|;|\+|,(?!\d)|\bpuis\b|\bet\b(?=\s*\d)|\bthen\b/i).map(function (x) { return x.trim(); }).filter(Boolean);
     pieces.forEach(function (p) {
       var hs = p.replace(STRIP_HEAD, ' ').replace(SCHEME_RX_G, ' ').replace(/^[\s:]+/, ''), ps = strip(hs), key = E.detect(ps);
-      if (!key) { if (/[a-z]{3,}/.test(ps.replace(/\b(x|reps?|de|d)\b/g, ''))) warn.push('Exercice non reconnu : « ' + p + ' »'); return; }
+      if (!key) { if (/[a-z]{3,}/.test(ps.replace(/\b(x|reps?|de|d)\b/g, ''))) warn.push(T('Exercice non reconnu : « {p} »', { p: p })); return; }
       var reps = 0, mm = ps.match(/(?:^|\s)(\d{1,3})\s*(?:x|×|reps?|repetitions?)?\s*[a-z]/) || ps.match(/[a-z]\s*(?:x|×)\s*(\d{1,3})\b/) || ps.match(/[a-z]\s+(\d{1,3})\s*$/);
       if (mm) reps = +mm[1];
       // nom affiché : le texte de l'exercice sans nombres (« thrusters », « pull-ups »…) quand il diffère du nom standard
@@ -145,7 +156,7 @@
       if (nm && strip(nm) !== strip(E.EX[key].label) && strip(nm) !== strip(E.EX[key].short) && nm.length <= 30) mv.n = nm.charAt(0).toUpperCase() + nm.slice(1);
       w.moves.push(mv);
     });
-    if (!w.moves.length) warn.push('Aucun exercice reconnu.');
+    if (!w.moves.length) warn.push(T('Aucun exercice reconnu.'));
     return { wod: normalize(w), warn: warn };
   }
 
@@ -164,21 +175,22 @@
 
   /* ---------- descriptions et scores ---------- */
   function describe(w) {
-    var mv = w.moves.map(function (m) { var t = m.reps || ''; return (t ? t + ' ' : '') + label(m).toLowerCase(); }).join(', ');
-    if (w.format === 'amrap') return 'AMRAP ' + fmtDur(w.cap) + ' · ' + mv;
+    var mv = w.moves.map(function (m) { var n = m.reps || ''; return (n ? n + ' ' : '') + lower(label(m)); }).join(', ');
+    if (w.format === 'amrap') return T('AMRAP {d} · {mv}', { d: fmtDur(w.cap), mv: mv });
     if (w.format === 'interval') {
-      var head = w.rest ? w.rounds + ' × (' + w.work + ' s effort, ' + w.rest + ' s repos)' : (w.work === 60 ? 'EMOM ' + w.rounds : 'Toutes les ' + fmtDur(w.work) + ' × ' + w.rounds);
-      return head + ' · ' + mv + (w.each === 'all' ? ' (tous à chaque intervalle)' : '');
+      var head = w.rest ? T('{r} × ({w} s effort, {p} s repos)', { r: w.rounds, w: w.work, p: w.rest }) : (w.work === 60 ? 'EMOM ' + w.rounds : T('Toutes les {d} × {r}', { d: fmtDur(w.work), r: w.rounds }));
+      return head + ' · ' + mv + (w.each === 'all' ? T(' (tous à chaque intervalle)') : '');
     }
-    var head2 = w.scheme ? w.scheme.join('-') : w.rounds > 1 ? w.rounds + ' tours' : '1 tour';
-    return head2 + ' · ' + mv + (w.cap ? ' · cap ' + fmtDur(w.cap) : '') + (w.restRound && w.rounds > 1 ? ' · repos ' + fmtDur(w.restRound) : '');
+    var head2 = w.scheme ? w.scheme.join('-') : w.rounds > 1 ? T('{n} tours', { n: w.rounds }) : T('1 tour');
+    return head2 + ' · ' + mv + (w.cap ? T(' · cap {d}', { d: fmtDur(w.cap) }) : '') + (w.restRound && w.rounds > 1 ? T(' · repos {d}', { d: fmtDur(w.restRound) }) : '');
   }
+  function roundsText(rounds, extra) { return (rounds > 1 ? T('{n} tours', { n: rounds }) : T('{n} tour', { n: rounds })) + (extra ? ' + ' + (extra > 1 ? T('{n} reps', { n: extra }) : T('{n} rep', { n: extra })) : ''); }
   function scoreText(r) {
-    if (r.format === 'amrap') return r.rounds + ' tour' + (r.rounds > 1 ? 's' : '') + (r.extra ? ' + ' + r.extra + ' rep' + (r.extra > 1 ? 's' : '') : '');
-    if (r.format === 'interval') return (r.okIntervals || 0) + '/' + (r.intervals ? r.intervals.length : 0) + ' intervalles réussis';
-    return r.finished ? fmtClock(r.sec) : 'non terminé (' + fmtClock(r.sec) + ')';
+    if (r.format === 'amrap') return roundsText(r.rounds, r.extra);
+    if (r.format === 'interval') return T('{ok}/{n} intervalles réussis', { ok: r.okIntervals || 0, n: r.intervals ? r.intervals.length : 0 });
+    return r.finished ? fmtClock(r.sec) : T('non terminé ({t})', { t: fmtClock(r.sec) });
   }
   function totalOf(tallies) { var s = 0; for (var k in tallies) s += tallies[k]; return s; }
 
-  return { FORMATS: FORMATS, PRESETS: PRESETS, normalize: normalize, validate: validate, parse: parse, stepAt: stepAt, totalSteps: totalSteps, targetFor: targetFor, requiredTotals: requiredTotals, freeProgress: freeProgress, describe: describe, scoreText: scoreText, totalOf: totalOf, fmtClock: fmtClock, fmtDur: fmtDur, label: label };
+  return { FORMATS: FORMATS, PRESETS: PRESETS, normalize: normalize, validate: validate, parse: parse, stepAt: stepAt, totalSteps: totalSteps, targetFor: targetFor, requiredTotals: requiredTotals, freeProgress: freeProgress, describe: describe, scoreText: scoreText, totalOf: totalOf, fmtClock: fmtClock, fmtDur: fmtDur, label: label, formatName: formatName, roundsText: roundsText };
 });
