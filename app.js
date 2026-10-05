@@ -18,7 +18,7 @@
   function defaults() {
     return {
       tab: 'exo',
-      settings: { voice: true, beep: true, vibrate: true, auto: false, level: 'normal', countdown: 5, diag: false, lang: I.guess() },
+      settings: { voice: true, beep: true, vibrate: true, auto: false, level: 'normal', countdown: 5, diag: false, lang: 'fr' },
       exo: { key: 'squat', target: 10, sets: 1, rest: 60 },
       draft: { name: '', format: 'time', order: 'ordered', moves: [{ k: 'squat', reps: 10 }, { k: 'pushup', reps: 10 }], rounds: 3, scheme: '', capMin: 0, work: 60, rest: 0, restRound: 0, each: 'one', text: '', add: 'squat', warn: [] },
       wods: [], sessions: []
@@ -27,7 +27,7 @@
   function sanitize(raw) {
     var d = defaults(); if (!raw || typeof raw !== 'object') return d;
     var s = raw.settings || {};
-    d.settings = { voice: s.voice !== false, beep: s.beep !== false, vibrate: s.vibrate !== false, auto: !!s.auto, level: LEVELS[s.level] ? s.level : 'normal', countdown: [0, 3, 5, 10].indexOf(s.countdown) >= 0 ? s.countdown : 5, diag: !!s.diag, lang: s.lang === 'az' ? 'az' : s.lang === 'fr' ? 'fr' : d.settings.lang };
+    d.settings = { voice: s.voice !== false, beep: s.beep !== false, vibrate: s.vibrate !== false, auto: !!s.auto, level: LEVELS[s.level] ? s.level : 'normal', countdown: [0, 3, 5, 10].indexOf(s.countdown) >= 0 ? s.countdown : 5, diag: !!s.diag, lang: 'fr' }; /* l'option de langue est retirée : français seulement */
     var x = raw.exo || {}; d.exo = { key: E.EX[x.key] ? x.key : 'squat', target: num(x.target, 10, 0, 999), sets: num(x.sets, 1, 1, 30), rest: num(x.rest, 60, 0, 600) };
     var dr = raw.draft || {}; d.draft = Object.assign(d.draft, { name: String(dr.name || '').slice(0, 60), format: W.FORMATS[dr.format] ? dr.format : 'time', order: dr.order === 'free' ? 'free' : 'ordered', rounds: num(dr.rounds, 3, 1, 99), scheme: String(dr.scheme || '').slice(0, 60), capMin: num(dr.capMin, 0, 0, 180), work: num(dr.work, 60, 5, 3600), rest: num(dr.rest, 0, 0, 3600), restRound: num(dr.restRound, 0, 0, 1800), each: dr.each === 'all' ? 'all' : 'one', text: String(dr.text || '').slice(0, 2000), add: E.EX[dr.add] ? dr.add : 'squat', warn: [] });
     d.draft.moves = (Array.isArray(dr.moves) ? dr.moves : d.draft.moves).filter(function (m) { return m && E.EX[m.k]; }).slice(0, 12).map(function (m) { var o = { k: m.k, reps: num(m.reps, 0, 0, 999) }; if (typeof m.n === 'string' && m.n.trim()) o.n = m.n.trim().slice(0, 30); return o; });

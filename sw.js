@@ -4,7 +4,7 @@
    - La bibliothèque de détection et le modèle (jsDelivr, storage.googleapis.com, environ 15 Mo) sont gardés dans un cache à part
      après le premier chargement, pour fonctionner sans réseau ensuite. Ce cache survit aux mises à jour de l'appli.
    Préfixes propres à REPS : ne touche jamais aux caches des autres applis du même domaine (ARISE, ROAD TO GI, Ma Routine…). */
-const VERSION = 'v1.1.0';
+const VERSION = 'v1.2.0';
 const PREFIX = 'reps-' + new URL(self.registration.scope).pathname + '-';
 const CACHE = PREFIX + VERSION;
 const ML = 'reps-ml-v1';

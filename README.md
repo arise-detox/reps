@@ -10,7 +10,7 @@ Une application web (PWA) qui compte tes répétitions avec la caméra de ton t�
 - Carnet : historique, records par exercice, sauvegarde et restauration.
 - 13 exercices : squats, fentes, pompes, tractions, dips, sit-ups, soulevés/swings, développés, toes to bar, développé couché/incliné, tirages/rowing, presse à cuisses, burpees.
 - Analyse aussi une **vidéo** du téléphone, au lieu de la caméra.
-- **Deux langues** : français et azerbaïdjanais (sélecteur **FR | AZ** en haut à droite, choix mémorisé ; la langue du navigateur est utilisée au premier lancement). Interface, conseils de placement, annonces vocales et lecture d'un WOD écrit en azéri (« AMRAP 12 dəq: 5 dartınma, 10 şınav, 15 çömelmə »). La traduction azérie a été rédigée sans relecture par une personne de langue azérie : toute correction est la bienvenue. La voix de synthèse utilise une voix azérie si le téléphone en a une, sinon une voix turque (langue très proche).
+- Interface en français. Une traduction azérie existe dans `i18n.js` (sélecteur retiré de l'interface à la demande ; il suffit de remettre les boutons `data-lang` dans `index.html` pour la réactiver).
 
 Ce compteur est issu de celui de ROAD TO GI, isolé en application autonome (ROAD TO GI n'est pas modifiée).
 
